@@ -102,7 +102,17 @@ def checkDependencies():
         if(retcode!=0):
             print ('Failed to clone Closure Library via Git. Discontinuing.')
             sys.exit(1)
-    
+            
+        #patch closure/goog/dom/dom.js
+        closure_dom_js = os.path.join(closure_dir,'closure/goog/dom/dom.js')
+        if(os.path.exists(closure_dom_js)):
+            infile= open(closure_dom_js,'r')
+            data = infile.read()
+            infile.close()			
+            if(re.search(r'goog.dom.defaultDomHelper_;', data) is not None):
+                outfile = open(closure_dom_js, 'w')
+                outfile.write(re.sub(r'goog.dom.defaultDomHelper_;', 'goog.dom.defaultDomHelper_ = null; //patch: set to null avoid error when code compressed', data))
+                outfile.close()
     
     #Box2D
     if not os.path.exists(box2d_dir):
