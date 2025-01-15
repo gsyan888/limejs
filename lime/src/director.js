@@ -91,9 +91,14 @@ lime.Director = function(parentElement, opt_width, opt_height) {
         meta.content = content;
         document.getElementsByTagName('head').item(0).appendChild(meta);
 
-
         //todo: look for a less hacky solution
-        if(goog.userAgent.MOBILE && !goog.global['navigator'].standalone){
+        //if(goog.userAgent.MOBILE && !goog.global['navigator'].standalone){
+		//modified by gsyan : detect iOS 
+		if((goog.userAgent.MOBILE 
+			  ||  /iPad|iPhone|iPod/.test(navigator.platform)
+			  || (navigator.platform === 'MacIntel' && navigator['maxTouchPoints'] > 1)
+			)
+			&& !goog.global['navigator'].standalone){
             var that = this;
             setTimeout(
                 function(){window.scrollTo(0, 0);that.invalidateSize_()}
@@ -125,14 +130,22 @@ lime.Director = function(parentElement, opt_width, opt_height) {
 
     this.eventDispatcher = new lime.events.EventDispatcher(this);
 
+	// helper function to run preventDefault, add by gsyan
+	function lime_preventDefault(e) {
+		if(typeof(preventDefaultEnabled)=='undefined' || (typeof(preventDefaultEnabled)!='undefined' && preventDefaultEnabled)) {
+			e.event.preventDefault();
+		}
+	}
+    //goog.events.listen(this, ['touchmove','touchstart'],
+    //    function(e) {e.event.preventDefault();}, false, this);
     goog.events.listen(this, ['touchmove','touchstart'],
-        function(e) {e.event.preventDefault();}, false, this);
+        lime_preventDefault, false, this);
 
     // todo: check if all those are really neccessary as Event code
     // is much more mature now
     goog.events.listen(this, ['mouseup', 'touchend', 'mouseout', 'touchcancel'],
         function() {},false);
-
+	
 
     this.invalidateSize_();
 
@@ -316,7 +329,7 @@ lime.Director.prototype.replaceScene = function(scene, opt_transition,
 
         },false,this);
 
-    if (goog.isDef(opt_duration)) {
+    if (lime.isDef(opt_duration)) {
         transition.setDuration(opt_duration);
     }
 
@@ -343,11 +356,11 @@ lime.Director.prototype.pushScene = function(scene, opt_transition, opt_duration
 
     scene.setSize(this.getSize().clone());
 
-    if (goog.isDef(opt_transition) && this.sceneStack_.length) {
+    if (lime.isDef(opt_transition) && this.sceneStack_.length) {
         outgoing = this.sceneStack_[this.sceneStack_.length - 1];
         transition = new opt_transition(outgoing, scene);
 
-        if (goog.isDef(opt_duration)) {
+        if (lime.isDef(opt_duration)) {
             transition.setDuration(opt_duration);
         }
         scene.domElement.style['display'] = 'none';
@@ -384,10 +397,10 @@ lime.Director.prototype.popScene = function(opt_transition, opt_duration) {
         outgoing = null; // GC
     };
     // Transitions require an existing incoming scene
-    if (goog.isDef(opt_transition) && (this.sceneStack_.length > 1)) {
+    if (lime.isDef(opt_transition) && (this.sceneStack_.length > 1)) {
         transition = new opt_transition(outgoing, this.sceneStack_[this.sceneStack_.length - 2]);
 
-        if (goog.isDef(opt_duration)) {
+        if (lime.isDef(opt_duration)) {
             transition.setDuration(opt_duration);
         }
         goog.events.listenOnce(transition, 'end', popOutgoing, false, this);
@@ -409,6 +422,7 @@ lime.Director.prototype.popScene = function(opt_transition, opt_duration) {
 lime.Director.prototype.addCover = function(cover, opt_addAboveDirector) {
     //mobile safari performes much better with this hack. needs investigation.
     if (goog.userAgent.WEBKIT && goog.userAgent.MOBILE) {
+			
         if (opt_addAboveDirector) {
             this.coverElementAbove.appendChild(cover.domElement);
         }
@@ -530,9 +544,11 @@ lime.Director.prototype.invalidateSize_ = function() {
     // height addition is because scroll(0,0) doesn't work any more if the
     // document has no edge @tonis todo:look for less hacky solution(iframe?).
     if(goog.userAgent.MOBILE && this.domElement.parentNode==document.body){
+		
         if(this.overflowStyle_) goog.style.uninstallStyles(this.overflowStyle_);
         this.overflowStyle_ = goog.style.installStyles(
             'html{height:'+(stageSize.height+120)+'px;overflow:hidden;}');
+
     }
 
 };
@@ -542,8 +558,18 @@ lime.Director.prototype.invalidateSize_ = function() {
  */
 lime.Director.prototype.makeMobileWebAppCapable = function() {
     var visited = false;
-    if (goog.isDef(localStorage)) {
-        visited = localStorage.getItem('_lime_visited');
+	
+	//add by gsyan
+	var storageSupported = false;	
+	try { 
+		storageSupported = (window.localStorage && true);
+	} catch (e) {};
+	
+    //if (goog.isDef(localStorage)) {
+	if (storageSupported) {
+		try {
+			visited = window.localStorage.getItem('_lime_visited');
+		}catch(e) { console.log(e); };
     }
 
     var addMeta = function(meta_name, meta_val) {
@@ -566,10 +592,20 @@ lime.Director.prototype.makeMobileWebAppCapable = function() {
         if (!window.navigator.standalone &&
             COMPILED && !visited &&
             this.domElement.parentNode==document.body) {
-            alert('Please install this page as a web app by ' +
-                  'clicking Share + Add to home screen.');
-            if (goog.isDef(localStorage)) {
-                localStorage.setItem('_lime_visited', true);
+			var _nav = window.navigator;
+			var _lang = _nav.language && _nav.language.toLowerCase().replace('-', '_') || '';
+			if(_lang == 'zh_tw' || _lang == 'zh_cn') {	//add by gsyan
+				alert('※小提醒\n\n如果要加入主畫面變成一個 Web App' +
+					  "\n\n請先按上方「分享」的圖示\n\n再按「加入主畫面」\n");
+			} else {
+				alert('Please install this page as a web app by ' +
+					  'clicking Share + Add to home screen.');
+			}
+            //if (goog.isDef(localStorage)) {
+			if (storageSupported) {
+				try {
+					window.localStorage.setItem('_lime_visited', true);
+				}catch(e) { console.log(e); };
             }
         }
     }
