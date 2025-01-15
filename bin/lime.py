@@ -33,9 +33,14 @@ closure_deps_file = os.path.join(closure_dir,'closure/goog/deps.js')
 
 box2d_dir = os.path.join(basedir,'box2d')
 
+#dependencies source
+#version ok: compiler-20190709.zip, compiler-20150126.zip , compiler-20141215.zip , compiler-20130411.zip
+compiler_url = "https://dl.google.com/closure-compiler/compiler-20150126.zip"
+soy_url = "https://dl.google.com/closure-templates/closure-templates-for-javascript-latest.zip"
+
 extdir = join(basedir,'bin/external')
-# compiler_path = os.path.join(extdir,'compiler-20130411.jar')
-compiler_path = os.path.join(extdir,'compiler-20150126.jar') # OK. compiler-20190709.jar, compiler-20150126.jar ,  compiler-20141215.jar , compiler-20130411.jar
+#compiler_path = os.path.join(extdir,'compiler-20130411.jar')
+compiler_path = os.path.join(extdir,'compiler-20150126.jar')
 soy_path = os.path.join(extdir,'SoyToJsSrcCompiler.jar')
 projects_path = join(basedir,'bin/projects')
 
@@ -115,21 +120,17 @@ def checkDependencies():
         os.mkdir(extdir)
     
     #Closure compiler
-        #Closure compiler
     if not os.path.exists(compiler_path):
-        #jarName = os.path.join(extdir,'compiler.jar')
-        #print ('Downloading Closure Compiler: ')
-        #urlretrieve("https://repo1.maven.org/maven2/com/google/javascript/closure-compiler/v20240317/closure-compiler-v20240317.jar",jarName,rephook)
         zip_path = os.path.join(extdir,'compiler.zip')
         print ('Downloading Closure Compiler: ')
-        #urlretrieve("http://dl.google.com/closure-compiler/compiler-latest.zip",zip_path,rephook)
-        #rf. https://github.com/google/closure-compiler/wiki/Binary-Downloads
-        urlretrieve("https://dl.google.com/closure-compiler/compiler-20150126.zip",zip_path,rephook)		
+        #urlretrieve("http://closure-compiler.googlecode.com/files/compiler-20130411.zip",zip_path,rephook)
+        urlretrieve(compiler_url, zip_path, rephook)
         print ('\nUnzipping...')
         zippedFile = zipfile.ZipFile(zip_path)
+        #get .jar filename
         jarName = ''
         for name in zippedFile.namelist():
-            if re.match(r'closure-compiler-.*\.jar', name):
+            if re.match(r'compiler.*\.jar', name):
                 jarName = name
                 print(jarName)
         zippedFile.extract(jarName, extdir)
@@ -143,9 +144,8 @@ def checkDependencies():
     if not os.path.exists(soy_path):
         zip_path = os.path.join(extdir,'soy.zip')
         print ('Downloading Closure Templates(Soy):')
-        #urlretrieve("http://closure-templates.googlecode.com/files/closure-templates-for-javascript-latest.zip",
-        urlretrieve("https://dl.google.com/closure-templates/closure-templates-for-javascript-latest.zip",
-            zip_path,rephook)
+        #urlretrieve("http://closure-templates.googlecode.com/files/closure-templates-for-javascript-latest.zip", zip_path,rephook)
+        urlretrieve(soy_url, zip_path,rephook)
         print ('\nUnzipping...')
         zippedFile = zipfile.ZipFile(zip_path)
         zippedFile.extract('SoyToJsSrcCompiler.jar',extdir)
@@ -296,12 +296,14 @@ def build(name,options):
     
     call = 'python ' + escapeSpace(os.path.join(closure_dir,'closure/bin/build/closurebuilder.py'))+' '+opt+' --namespace="'+name+'" '+\
         '-o compiled -c '+compiler_path;
-
+    
     #add by gsyan for compiler after 20150126
-    nVer = re.search(r'-(\d+)\.ajar', 'compiler-20150126.jar')
+    nVer = re.search(r'-(\d+)\.', compiler_url)
     if nVer is not None and int(nVer.group(1)) > 20150126:
         call+=" -f --use_types_for_optimization=false"
-
+    #option to disable some warning
+    #call+=" -f --jscomp_off=checkTypes"
+    #call+=" -f --language_in=ECMASCRIPT6"
     
     if options.advanced:
         call+=" -f --compilation_level=ADVANCED_OPTIMIZATIONS"
