@@ -12,8 +12,9 @@ var ua = goog.userAgent.getUserAgentString();
  * Whether the user agent is running on iOS device
  * @type boolean
  */
-lime.userAgent.IOS = goog.userAgent.WEBKIT && goog.userAgent.MOBILE &&
-    (/(ipod|iphone|ipad)/i).test(ua);
+lime.userAgent.IOS = (goog.userAgent.WEBKIT && goog.userAgent.MOBILE &&
+    (/(ipod|iphone|ipad)/i).test(ua) )
+	|| (navigator.platform === 'MacIntel' && navigator['maxTouchPoints'] > 1);
 
 /**
  * Whether the user agent is running iOS5
@@ -71,6 +72,12 @@ lime.userAgent.CHROME = goog.userAgent.WEBKIT && (/Chrome\//i).test(ua);
  * @type boolean
  */
 lime.userAgent.SUPPORTS_TOUCH = goog.isDef(document['ontouchmove']);
+
+
+lime.userAgent.MOBILE = (goog.userAgent.MOBILE 
+			  ||  /android|iPad|iPhone|iPod/i.test(navigator.platform)
+			  || (navigator.platform === 'MacIntel' && navigator['maxTouchPoints'] > 1)
+			);
 
 
 })();
