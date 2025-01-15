@@ -338,6 +338,20 @@ lime.Label.prototype.setShadow = function(color, opt_blur, opt_offsetX, opt_offs
 };
 
 /**
+ * Shorthand for adding shadow to a label. Using the full css string to set.
+ * @param {?string} value Shadow color.
+ * @return {lime.Label} object itself.
+ */
+lime.Label.prototype.setShadowByString = function(value) {
+	//add by gsyan 2022.10.04
+	if(arguments.length == 1 && value!='') {
+		this.shadowString_ = value;
+		this.setDirty(lime.Dirty.FONT);
+    }
+    return this;
+};
+
+/**
  * Returns true if the label has a shadow.
  * @private
  */
@@ -503,6 +517,10 @@ lime.Renderer.DOM.LABEL.draw = function(el) {
         style['textAlign'] = this.getAlign();
         style['font-style'] = this.getStyle();
         style['textShadow'] = this.hasShadow_() ? this.getShadowColor() + ' ' + this.getShadowOffset().x + 'px ' + this.getShadowOffset().y + 'px ' + this.getShadowBlur() + 'px' : '';
+		//add by gsyan
+		if(typeof(this.shadowString_)!='undefined') {
+			style['textShadow'] = this.shadowString_;
+		}        
     }
 };
 
