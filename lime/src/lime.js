@@ -110,3 +110,12 @@ lime.Transition = {
 
 goog.style.installStyles(lime.css.css(null, null));
 
+/**
+ * Return if var is defined (add by gsyan , replace goog.isDef)
+ * @param {any} val
+ * @return {boolean}
+ */
+lime.isDef = function(val) {
+	return (typeof(val)!='undefined' && val!=null);
+};
+
