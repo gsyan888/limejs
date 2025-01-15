@@ -58,6 +58,10 @@ lime.scheduleManager = new (function() {
 
 })();
 
+/**
+ * Add JSDoc tag to avoid warning. by gsyan
+ * @this {lime.scheduleManager}
+ */
 lime.scheduleManager.Callback = function (f, ctx, delta) {
     this.f = f;
     this.ctx = ctx;
@@ -87,6 +91,7 @@ lime.scheduleManager.Task.prototype.step_ = function(dt) {
 
     var f;
     var i = this.functionStack_.length;
+
     while (--i >= 0) {
         f = this.functionStack_[i];
         if (f && !f.paused && goog.isFunction(f.f)) {
@@ -238,6 +243,10 @@ lime.scheduleManager.activate_ = function() {
     this.active_ = true;
 };
 
+/**
+ * Add JSDoc tag to avoid warning. by gsyan
+ * @this {lime.scheduleManager}
+ */
 lime.scheduleManager.activate__ = function() {
     this.lastRunTime_ = this.now();
 
@@ -299,7 +308,7 @@ lime.scheduleManager.disable_ = function() {
  * @private
  */
 lime.scheduleManager.animationFrameHandler_ = function(){
-    time = this.now()
+    var time = this.now();
     var delta = time - this.lastRunTime_;
     if (delta < 0) { // i0S6 reports relative to the device restart time. So first is negative.
         delta = 1;
