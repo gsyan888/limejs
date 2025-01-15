@@ -130,7 +130,14 @@ lime.fill.Frame.prototype.makeFrameData_ = function(){
     if(!this.USE_CSS_CANVAS){
 
         var contents = this.ctx.canvas.toDataURL("image/png"),
-            rule = '.'+this.data_.classname+'{background-image:url('+contents+') !important}';
+        //2022.01.20 modified by gsyan , avoid to break the process
+        // DOMException: Failed to execute 'toDataURL' on 'HTMLCanvasElement': Tainted canvases may not be exported
+        try {	
+            var contents = this.ctx.canvas.toDataURL("image/png");
+        }catch(error) { 
+            //
+        }		
+        var rule = '.'+this.data_.classname+'{background-image:url('+contents+') !important}';
 
         if(!styleSheet) {
             goog.style.installStyles(rule);
