@@ -129,7 +129,6 @@ lime.fill.Frame.prototype.makeFrameData_ = function(){
 
     if(!this.USE_CSS_CANVAS){
 
-        var contents = this.ctx.canvas.toDataURL("image/png"),
         //2022.01.20 modified by gsyan , avoid to break the process
         // DOMException: Failed to execute 'toDataURL' on 'HTMLCanvasElement': Tainted canvases may not be exported
         try {	
