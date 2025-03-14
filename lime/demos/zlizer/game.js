@@ -50,8 +50,10 @@ zlizer.Game = function(level) {
     lime.scheduleManager.scheduleWithDelay(this.reload, this, zlizer.RELOAD_TIME);
     lime.scheduleManager.scheduleWithDelay(this.checkDeletions, this, 200);
 
+    //this.lblScore = new lime.Label().setText((zlizer.isZh?'數字 ':'NUMBER ') + this.magic).setMultiline(true).setPosition(760, 15)
     this.lblScore = new lime.Label().setText('NUMBER ' + this.magic).setPosition(760, 15)
         .setAnchorPoint(1, 0).setFontColor('#80ff36')
+		.setSize(380, 90).setAlign('right').setPosition(750, 15)
         .setFontSize(70);
     this.appendChild(this.lblScore);
 
@@ -65,7 +67,7 @@ zlizer.Game = function(level) {
     this.cover = new lime.Layer().setPosition(zlizer.director.getSize().width / 2, 0);
     this.appendChild(this.cover);
 
-    var btn = new zlizer.Button('Back to menu').setSize(270, 70).setPosition(150, 945);
+    var btn = new zlizer.Button(zlizer.isZh?'回主選單':'Back to Menu').setSize(270, 70).setPosition(150, 945);
     this.appendChild(btn);
     goog.events.listen(btn, 'click', function() {zlizer.loadMenuScene(lime.transitions.MoveInUp);});
 
@@ -318,7 +320,7 @@ zlizer.Game.prototype.upHandler_ = function(touch,e) {
 };
 
 zlizer.Game.prototype.startup = function() {
-    var title = new lime.Label().setText('Your game is about to start').setFontSize(52).setPosition(0, 0);
+    var title = new lime.Label().setText(zlizer.isZh?'遊戲即將開始':'Your game is about to start').setFontSize(52).setPosition(0, 0);
     this.cover.appendChild(title);
     var show = new lime.animation.MoveBy(0, 200).setDuration(1.5);
     title.runAction(show);
@@ -366,14 +368,14 @@ zlizer.Game.prototype.showEndDialog = function() {
 
    var dialog = new lime.RoundedRect().setRadius(30).setFill(new lime.fill.LinearGradient().addColorStop(0, 0, 0, 0, .5).addColorStop(1, 0, 0, 0, .7)).setSize(400, 400).setPosition(400, 200).setAnchorPoint(.5, 0);
    this.appendChild(dialog);
-   var title = new lime.Label().setText('Level complete!').setFontColor('#fff').setFontSize(46).setPosition(0, 70);
+   var title = new lime.Label().setText(zlizer.isZh?'🎊 恭喜過關 🎉':'Level complete!').setFontColor('#fff').setSize(300, 90).setFontSize(46).setPosition(0, 70);
    dialog.appendChild(title);
-   var btn = new zlizer.Button().setText('NEXT LEVEL').setSize(300, 90).setPosition(0, 200);
+   var btn = new zlizer.Button().setText(zlizer.isZh?'下一關':'NEXT LEVEL').setSize(300, 90).setPosition(0, 200);
    dialog.appendChild(btn);
 
    if (this.points <= 0) {
-       title.setText('You lost');
-       btn.setText('TRY AGAIN');
+       title.setText('LEVEL '+this.level+'\n'+(zlizer.isZh?'挑戰失敗':'You lost')).setMultiline(true);
+       btn.setText(zlizer.isZh?'再試一次':'TRY AGAIN');
    }
    else if (this.level == 20) dialog.removeChild(btn);
 
@@ -383,17 +385,19 @@ zlizer.Game.prototype.showEndDialog = function() {
 
 
 
-   var btn = new zlizer.Button().setText('MAIN SCREEN').setSize(300, 90).setPosition(0, 320);
+   var btn = new zlizer.Button().setText(zlizer.isZh?'回主選單':'MAIN SCREEN').setSize(300, 90).setPosition(0, 320);
    dialog.appendChild(btn);
 
    goog.events.listen(btn, lime.Button.Event.CLICK, function() {
          zlizer.loadMenuScene(true);
      });
-
+   try {
      goog.events.unlisten(this, ['mousedown', 'touchstart', 'keydown'],
              this.downHandler_, false, this);
-
-             lime.scheduleManager.unschedule(this.drawTouches_, this);
+   }catch(e){};
+   try {   
+     lime.scheduleManager.unschedule(this.drawTouches_, this);
+   }catch(e){};
 };
 
 zlizer.Game.prototype.removeBubble = function(b) {
@@ -418,7 +422,9 @@ zlizer.Game.prototype.checkDeletions = function() {
     var i = this.bubbles.length;
     while (--i >= 0) {
      if (this.bubbles[i].getPosition().y > 840 || this.bubbles[i].getPosition().x < 0 || this.bubbles[i].getPosition().x > 768) {
-         this.removeBubble(this.bubbles[i]);
+		 try {
+			this.removeBubble(this.bubbles[i]);
+		 }catch(e){};
      }
     }
 };
@@ -444,6 +450,13 @@ zlizer.Game.prototype.returnPoints = function(b) {
       goog.events.listen(show, lime.animation.Event.STOP, function() {
           this.removeChild(lbl);
       },false, this);
+	  
+      if(zlizer.soundBubble==null || typeof(zlizer.soundBubble.play)!='function') {
+      	zlizer.soundInit();
+      }
+      try{zlizer.soundBubble.play()}catch(e){};
+
+	  
 };
 
 zlizer.Game.prototype.updateFloaters = function(dt) {
@@ -453,6 +466,8 @@ zlizer.Game.prototype.updateFloaters = function(dt) {
 };
 
 zlizer.Game.prototype.combine = function(bubs) {
+	if(typeof(this.done)=='number' && this.done == 1) return;  //game is done , just return. add by gsyan
+
     var sumcoord = [0, 0];
     var sum = 0;
 
@@ -495,10 +510,19 @@ zlizer.Game.prototype.combine = function(bubs) {
     },false, this);
     b.runAction(appear);
 
+	if(zlizer.soundCombine==null || typeof(zlizer.soundCombine.play)!='function') {
+		zlizer.soundInit();
+	}
+	try{zlizer.soundCombine.play()}catch(e){};
+
+
 };
 
 zlizer.Game.prototype.breakup = function(bub,dx,dy) {
+	if(typeof(this.done)=='number' && this.done == 1) return;  //game is done , just return. add by gsyan
+	
     if (bub.value < 2) return;
+
 
     var angle = Math.PI * 2 * Math.random();
 
@@ -537,5 +561,10 @@ zlizer.Game.prototype.breakup = function(bub,dx,dy) {
         },false, newb);
         newb.runAction(appear);
     }
+
+	if(zlizer.soundBreakup==null || typeof(zlizer.soundBreakup.play)!='function') {
+		zlizer.soundInit();
+	}
+	try{zlizer.soundBreakup.play()}catch(e){};
 
 };
