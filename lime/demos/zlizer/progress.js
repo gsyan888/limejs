@@ -5,6 +5,11 @@ goog.require('lime.animation.ColorTo');
 goog.require('lime.animation.Resize');
 goog.require('lime.fill.LinearGradient');
 
+/**
+ * Display game progress
+ * @constructor
+ * @extends lime.RoundedRect
+ */
 zlizer.Progress = function() {
     lime.RoundedRect.call(this);
 
