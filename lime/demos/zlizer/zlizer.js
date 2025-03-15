@@ -160,7 +160,9 @@ zlizer.builtWithLime = function(scene) {
     scene.appendChild(btn);
 };
 
-
+/**
+ *@this Particle
+ */
 function Particle(x0, y0, x1, y1) {
     this.p0 = [x0, y0];
     this.p1 = [x1, y1];
