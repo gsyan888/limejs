@@ -2,6 +2,12 @@ goog.provide('zlizer.Bubble');
 
 goog.require('lime.Sprite');
 
+/**
+ * Number Bubble
+ * @param {number} value number to show
+ * @constructor
+ * @extends lime.Sprite
+ */
 zlizer.Bubble = function(value) {
     lime.Sprite.call(this);
 
