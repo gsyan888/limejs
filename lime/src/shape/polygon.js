@@ -56,7 +56,7 @@ lime.Polygon.prototype.setPoints = function(points) {
  * @return {lime.Polygon} object itself.
  */
 lime.Polygon.prototype.addPoints = function(points) {
-    var points = goog.array.toArray(arguments);
+    points = goog.array.toArray(arguments);
     if (!points.length) return;
 
     if (points[0] instanceof goog.math.Coordinate) {
